@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: gateway_timescaledb
+    environment:
+      POSTGRES_USER: gateway_admin
+      POSTGRES_PASSWORD: gateway_secret_password
+      POSTGRES_DB: ai_gateway
+    ports:
+      - "5432:5432"
+    volumes:
+      - ts_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d # For Phase 1 schema initialization
+    networks:
+      - gateway_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway_admin -d ai_gateway"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  gateway_network:
+    driver: bridge
+
+volumes:
+  ts_data:
+    driver: local
